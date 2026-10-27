@@ -27,7 +27,7 @@ def build(parts):
         street.build()
     if 'hive' in parts:
         hive.build()
-    for name in ('capsule_spire', 'monolith', 'helix', 'bridges', 'spire', 'skyline', 'fabric', 'signs', 'holo', 'clouds'):
+    for name in ('capsule_spire', 'backdrop', 'monolith', 'helix', 'bridges', 'spire', 'skyline', 'fabric', 'signs', 'holo', 'clouds'):
         if name in parts:
             mod = __import__(f'cityparts.{name}', fromlist=['build'])
             mod.build()
@@ -36,7 +36,7 @@ def build(parts):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--parts', default='capsule_spire,clouds')
+    ap.add_argument('--parts', default='capsule_spire,backdrop,clouds')
     ap.add_argument('--shots', default='')
     ap.add_argument('--res', default='960x540')
     ap.add_argument('--samples', type=int, default=32)

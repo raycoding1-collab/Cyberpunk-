@@ -25,11 +25,13 @@ def cloud_material(name, scale, density, glow):
     alpha = g.ramp(d, [(0.42, (0, 0, 0)), (0.78, (density, density, density))])
     sep = g.n('ShaderNodeSeparateXYZ')
     g.link(obj, sep.inputs[0])
-    # distance from the Spire (0, 700) drives the warm glow
+    # distance from the Spire drives the warm glow; the rest of the deck is
+    # the teal of a light-polluted night (Night City), darkening outward
     dx = g.math('SUBTRACT', sep.outputs['X'], 0.0)
-    dy = g.math('SUBTRACT', sep.outputs['Y'], 700.0)
+    dy = g.math('SUBTRACT', sep.outputs['Y'], 0.0)
     r = g.math('SQRT', g.math('ADD', g.math('MULTIPLY', dx, dx), g.math('MULTIPLY', dy, dy)))
-    warm = g.ramp(g.math('DIVIDE', r, 1600.0), [(0.0, (1.0, 0.55, 0.18)), (0.18, (0.8, 0.25, 0.35)), (0.5, (0.32, 0.12, 0.45)), (1.0, (0.06, 0.04, 0.12))])
+    warm = g.ramp(g.math('DIVIDE', r, 2400.0), [(0.0, (1.0, 0.45, 0.32)), (0.06, (0.72, 0.22, 0.48)), (0.16, (0.2, 0.32, 0.5)),
+                                                (0.4, (0.08, 0.3, 0.38)), (1.0, (0.03, 0.1, 0.14))])
     em = g.n('ShaderNodeEmission')
     g.link(warm, em.inputs['Color'])
     g.link(g.math('MULTIPLY', d, glow), em.inputs['Strength'])

@@ -276,26 +276,111 @@ def window_wall(name, cell_w=1.6, floor_h=4.0, lit=0.45, strength=5.0, mullion=0
 # Capsule modules (Hive)
 # ---------------------------------------------------------------------------
 
+def stencil_atlas():
+    """8x8 atlas of stencilled unit numbers (black on white) for the capsules."""
+    import os
+    import random
+    from PIL import Image, ImageDraw, ImageFont
+    root = __file__.rsplit('/blender/', 1)[0]
+    path = os.path.join(root, 'assets', 'generated', 'capsule_stencils.png')
+    if not os.path.exists(path):
+        R = random.Random(7)
+        TW, TH = 256, 64
+        im = Image.new('L', (TW * 8, TH * 8), 255)
+        d = ImageDraw.Draw(im)
+        latin = ImageFont.truetype(os.path.join(root, 'assets', 'fonts', 'BebasNeue-Regular.ttf'), 50)
+        kanji = ImageFont.truetype(os.path.join(root, 'assets', 'fonts', 'ZenKakuGothicNew-Black.ttf'), 40)
+        for i in range(64):
+            x0, y0 = (i % 8) * TW, (i // 8) * TH
+            block, unit = R.choice('ABCDEFGH'), R.randint(1, 640)
+            style = R.random()
+            if style < 0.45:
+                d.text((x0 + 10, y0 + TH // 2), f'{block}-{unit:03d}', font=latin, fill=0, anchor='lm')
+                d.rectangle((x0 + 150, y0 + 14, x0 + 246, y0 + 50), fill=0)
+                d.text((x0 + 198, y0 + TH // 2), f'{R.randint(1, 48):02d}', font=latin, fill=255, anchor='mm')
+            elif style < 0.75:
+                d.text((x0 + 10, y0 + TH // 2), f'蜂{R.randint(1, 9)}', font=kanji, fill=0, anchor='lm')
+                d.text((x0 + 100, y0 + TH // 2), f'{unit:04d}', font=latin, fill=0, anchor='lm')
+            else:
+                for k in range(6):  # hazard chevrons with the unit number
+                    d.polygon([(x0 + 8 + k * 18, y0 + 8), (x0 + 18 + k * 18, y0 + 8), (x0 + 8 + k * 18, y0 + 56), (x0 - 2 + k * 18, y0 + 56)], fill=0)
+                d.text((x0 + 128, y0 + TH // 2), f'{block}{unit:03d}', font=latin, fill=0, anchor='lm')
+        im.save(path)
+    return path
+
+
 @cached
 def capsule_shell(name='CapsuleShell'):
+    """Prefab capsule skin (local frame: front at +X, flanks at +/-Y).
+    Colour-blocked enamel like the Pacifica megablocks, a painted stripe on
+    about half the units, rain streaks running down from the roof, a
+    stencilled unit number on each flank, panel seams and a clear coat."""
+    import math as _m
     g = G(name)
     obj = g.coords('Object')
     uv = g.coords('UV')
     oi = g.n('ShaderNodeObjectInfo')
-    # mostly enamel white-grey, some muted teal / rust / charcoal capsules
-    paintc = g.ramp(oi.outputs['Random'], [
-        (0.0, (0.52, 0.53, 0.52)), (0.55, (0.62, 0.61, 0.58)), (0.78, (0.16, 0.30, 0.31)),
-        (0.86, (0.38, 0.16, 0.09)), (0.93, (0.06, 0.06, 0.07))], 'CONSTANT')
+    rnd = oi.outputs['Random']
+    r2 = g.math('FRACT', g.math('MULTIPLY', rnd, 7.31))
+    r3 = g.math('FRACT', g.math('MULTIPLY', rnd, 13.7))
+    paintc = g.ramp(rnd, [
+        (0.0, (0.60, 0.59, 0.55)), (0.30, (0.50, 0.50, 0.48)), (0.45, (0.66, 0.63, 0.57)), (0.58, (0.10, 0.30, 0.31)),
+        (0.68, (0.52, 0.38, 0.08)), (0.75, (0.40, 0.15, 0.08)), (0.82, (0.58, 0.31, 0.24)), (0.90, (0.06, 0.06, 0.07))], 'CONSTANT')
+    sep = g.n('ShaderNodeSeparateXYZ')
+    g.link(obj, sep.inputs[0])
+    x, z = sep.outputs['X'], sep.outputs['Z']
+    # painted stripe (or a thin double line) at a per-unit height
+    zc = g.math('MULTIPLY_ADD', r3, 1.2, 0.8)
+    dz = g.math('ABSOLUTE', g.math('SUBTRACT', z, zc))
+    band = g.math('LESS_THAN', dz, g.math('MULTIPLY_ADD', r2, 0.12, 0.06))
+    stripe_on = g.math('GREATER_THAN', r2, 0.45)
+    stripe_c = g.ramp(r3, [(0.0, (0.80, 0.55, 0.04)), (0.35, (0.04, 0.50, 0.50)), (0.6, (0.62, 0.06, 0.04)), (0.85, (0.78, 0.78, 0.75))], 'CONSTANT')
+    col = g.mix(g.math('MULTIPLY', band, stripe_on), paintc, stripe_c)
+    # stencilled unit number on the flanks, near the front
+    tc = g.n('ShaderNodeTexCoord')
+    nsep = g.n('ShaderNodeSeparateXYZ')
+    g.link(tc.outputs['Normal'], nsep.inputs[0])
+    ny = nsep.outputs['Y']
+    flank = g.math('GREATER_THAN', g.math('ABSOLUTE', ny), 0.8)
+    su = g.math('MULTIPLY_ADD', g.math('MULTIPLY', g.math('SIGN', ny), g.math('SUBTRACT', 3.9, x)), 1.0 / 1.6, 0.5)
+    sv = g.math('DIVIDE', g.math('SUBTRACT', z, 2.25), 0.4)
+    inside = g.math('MULTIPLY', g.math('MULTIPLY', g.math('GREATER_THAN', su, 0.0), g.math('LESS_THAN', su, 1.0)),
+                    g.math('MULTIPLY', g.math('GREATER_THAN', sv, 0.0), g.math('LESS_THAN', sv, 1.0)))
+    idx = g.math('FLOOR', g.math('MULTIPLY', r2, 63.99))
+    tx, ty = g.math('MODULO', idx, 8.0), g.math('FLOOR', g.math('DIVIDE', idx, 8.0))
+    cu = g.math('DIVIDE', g.math('ADD', tx, g.math('MINIMUM', g.math('MAXIMUM', su, 0.0), 1.0)), 8.0)
+    cv = g.math('DIVIDE', g.math('ADD', g.math('SUBTRACT', 7.0, ty), g.math('MINIMUM', g.math('MAXIMUM', sv, 0.0), 1.0)), 8.0)
+    cvec = g.n('ShaderNodeCombineXYZ')
+    g.link(cu, cvec.inputs[0])
+    g.link(cv, cvec.inputs[1])
+    img = bpy.data.images.load(stencil_atlas(), check_existing=True)
+    img.colorspace_settings.name = 'Non-Color'
+    tex = g.n('ShaderNodeTexImage')
+    tex.image = img
+    tex.extension = 'EXTEND'
+    g.link(cvec.outputs[0], tex.inputs['Vector'])
+    ink = g.math('MULTIPLY', g.math('MULTIPLY', flank, inside), g.math('SUBTRACT', 1.0, tex.outputs['Color']))
+    ink = g.math('MULTIPLY', ink, g.math('GREATER_THAN', r3, 0.15))
+    dark = g.math('LESS_THAN', rnd, 0.58)  # light units get dark ink, dark units pale ink
+    ink_c = g.mix(dark, (0.82, 0.8, 0.74), (0.025, 0.025, 0.028))
+    col = g.mix(g.math('MULTIPLY', ink, 0.9), col, ink_c)
+    # rain streaks from the roof edge and grime pooling low
+    streak = g.noise(g.mapping(obj, (5.0, 5.0, 0.22)), 2.2, 4, 0.55)
+    gen = g.n('ShaderNodeSeparateXYZ')
+    g.link(g.coords('Generated'), gen.inputs[0])
+    top = gen.outputs['Z']
+    sm = g.math('MULTIPLY', g.ramp(streak, [(0.45, (0, 0, 0)), (0.68, (1, 1, 1))]), g.math('MULTIPLY_ADD', top, 0.6, 0.4))
     grime = g.noise(g.mapping(g.coords('Generated'), (1.0, 1.0, 0.25)), 6.0, 6, 0.65)
-    gm = g.ramp(grime, [(0.35, (1, 1, 1)), (0.75, (0.45, 0.42, 0.40))])
-    col = g.mix(1.0, paintc, gm, 'MULTIPLY')
+    low = g.math('MULTIPLY', g.math('SUBTRACT', 1.0, top), g.ramp(grime, [(0.3, (0, 0, 0)), (0.7, (1, 1, 1))]))
+    dirt = g.math('MINIMUM', g.math('ADD', g.math('MULTIPLY', sm, 0.55), g.math('MULTIPLY', low, 0.45)), 0.8)
+    col = g.mix(dirt, col, (0.09, 0.08, 0.07), 'MULTIPLY')
     seams = g.n('ShaderNodeTexBrick', Scale=1.0, **{'Mortar Size': 0.02, 'Brick Width': 1.6, 'Row Height': 1.1, 'Mortar Smooth': 0.2})
     seams.offset = 0.5
     g.link(uv, seams.inputs['Vector'])
     bump = g.n('ShaderNodeBump', Strength=0.35, Distance=0.02)
     fine = g.noise(obj, 30.0, 4, 0.6)
     g.link(g.math('MULTIPLY_ADD', seams.outputs['Fac'], -1.0, g.math('MULTIPLY', fine, 0.15)), bump.inputs['Height'])
-    rough = g.math('MULTIPLY_ADD', grime, 0.35, 0.22)
+    rough = g.math('MULTIPLY_ADD', dirt, 0.4, 0.2)
     b = g.bsdf(**{'Base Color': col, 'Roughness': rough, 'Normal': bump.outputs[0], 'Coat Weight': 0.25, 'Coat Roughness': 0.15})
     return g.done(b.outputs[0])
 

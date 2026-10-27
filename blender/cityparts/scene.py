@@ -82,9 +82,9 @@ def setup_world(density=0.0007, anisotropy=0.4, mist=0.0024, mist_top=75.0):
     ramp = nt.nodes.new('ShaderNodeValToRGB')
     cr = ramp.color_ramp
     cr.elements[0].position = 0.0
-    cr.elements[0].color = (0.016, 0.006, 0.022, 1)
+    cr.elements[0].color = (0.006, 0.016, 0.022, 1)
     cr.elements[1].position = 0.18
-    cr.elements[1].color = (0.004, 0.004, 0.014, 1)
+    cr.elements[1].color = (0.002, 0.006, 0.012, 1)
     e = cr.elements.new(0.6)
     e.color = (0.0015, 0.0015, 0.004, 1)
     nt.links.new(sep.outputs['Z'], ramp.inputs[0])
@@ -96,7 +96,7 @@ def setup_world(density=0.0007, anisotropy=0.4, mist=0.0024, mist_top=75.0):
     vol = nt.nodes.new('ShaderNodeVolumePrincipled')
     vol.inputs['Density'].default_value = density
     vol.inputs['Anisotropy'].default_value = anisotropy
-    vol.inputs['Color'].default_value = (0.62, 0.66, 1.0, 1)
+    vol.inputs['Color'].default_value = (0.55, 0.76, 1.0, 1)
     nt.links.new(vol.outputs[0], out.inputs['Volume'])
     # low-lying mist layer: denser air in the streets, clearer above the roofs
     if mist > 0:
@@ -118,7 +118,7 @@ def setup_world(density=0.0007, anisotropy=0.4, mist=0.0024, mist_top=75.0):
         mv = mnt.nodes.new('ShaderNodeVolumePrincipled')
         mv.inputs['Density'].default_value = mist
         mv.inputs['Anisotropy'].default_value = anisotropy
-        mv.inputs['Color'].default_value = (0.62, 0.66, 1.0, 1)
+        mv.inputs['Color'].default_value = (0.55, 0.76, 1.0, 1)
         mnt.links.new(mv.outputs[0], mo.inputs['Volume'])
         me.materials.append(mm)
         ob = bpy.data.objects.new('MistLayer', me)

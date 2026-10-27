@@ -127,7 +127,7 @@ def build(seed=31):
     T = core_tower()
 
     conc = M.concrete('CoreConcrete', tone=0.15, tint=(1.0, 0.97, 0.93), panel=(2.4, 1.2), streaks=0.5)
-    core_rooms = M.window_wall('CoreSlits', cell_w=1.1, floor_h=3.3, lit=0.4, strength=2.4, mullion=0.62, office=False,
+    core_rooms = M.window_wall('CoreSlits', cell_w=1.1, floor_h=3.3, lit=0.3, strength=1.3, mullion=0.62, office=False,
                                zone=2, spandrel=0.5, spandrel_color=(0.11, 0.105, 0.1))
     steel = M.metal('ExoSteel', base=(0.07, 0.07, 0.075), rough=0.3)
     glass = M.clear_glass('ShaftGlass', tint=(0.85, 0.95, 1.0), rough=0.03)
@@ -221,6 +221,12 @@ def build(seed=31):
     km = MeshBuilder()
     km.merge(koi, matrix=Matrix.Translation((4.0, -46.0, 118.0)) @ Matrix.Rotation(math.radians(178), 4, 'Z') @ Matrix.Rotation(math.radians(-6), 4, 'Y'))
     km.to_object('SpireKoi', [koi_material('SpireKoiHolo', 4.5)], col, smooth=True)
+    for k, dx in enumerate((-14.0, 2.0, 18.0)):  # the hologram tints the haze around it
+        kl = bpy.data.lights.new(f'KoiGlow{k}', 'POINT')
+        kl.energy, kl.color, kl.shadow_soft_size = 2.5e4, (1.0, 0.42, 0.22), 5.0
+        ko = bpy.data.objects.new(f'KoiGlow{k}', kl)
+        ko.location = (4.0 + dx, -46.0, 118.0)
+        col.objects.link(ko)
     build_silhouettes(col)
     return col
 

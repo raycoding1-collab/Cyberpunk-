@@ -13,7 +13,7 @@ plaza really mirrors the tower, and the haze scatters every lamp.
 | Element | What it is |
 |---|---|
 | **Sculpted core** | A four-lobed concrete core that tapers and makes a quarter turn over 180 m (lofted freeform surface), skinned with slit windows. |
-| **Capsule scales** | ~630 capsule homes (porthole, louvred and balcony units: rounded shells, drip edges, vents, porch lights, lit rooms behind glass) plugged into the core in three helical currents, tilted and staggered like koi scales. |
+| **Capsule scales** | ~630 capsule homes (porthole, louvred and balcony units: rounded shells, drip edges, vents, porch lights, lit rooms behind glass) plugged into the core in three helical currents, tilted and staggered like koi scales. Each shell is colour-blocked enamel with a painted stripe, rain streaks and a stencilled unit number. |
 | **Light currents** | Neon tubes trace the edges of the capsule currents; light pulses run up the spiral. |
 | **Spinal lift shafts** | Two glass shafts in the core's valleys, wrapped in vertebrae (rings with fins reaching for the core), cabins as glowing beads, tied back by sagging tendon catwalks hung with red lanterns. |
 | **Exoskeleton** | A hexagonal steel shell on the upper third, its cells tightening with height; Wireframe + Subdivision give it organic, flowing nodes. |
@@ -21,7 +21,13 @@ plaza really mirrors the tower, and the haze scatters every lamp.
 | **Podium** | Real shop interiors (ramen bar with lanterns, clinic, neon bar, stocked mart, shuttered units) behind glazing, 3D shop names, a wave canopy of curved lit ribs, a glazed restaurant level, and perforated metal screens on all four faces with kanji cut out of them, glowing from behind. |
 | **Plaza** | Wet stone paving, a raised black koi pond with holographic lilies, lotus flowers and koi, steam vents, light rails that flow toward the tower, a street with lane lights. |
 | **Hover-car** | Syd Mead-inspired: lofted lacquer-red/graphite body with panel seams and a cyan pinstripe, tinted canopy over a glowing dash, four thruster nacelles on articulated swing arms. |
-| **Atmosphere** | Low mist layer, volumetric haze, rain streaks that catch the neon, a glowing cloud ceiling, distant sculpted towers reduced to silhouettes. |
+| **City around it** | A midfield of sculpted towers with pin-point windows, neon floor bands, cantilevered crowns and curved LED screens; behind them, kilometre-tall buttressed megastructures that vanish into the cloud deck. |
+| **Air traffic** | Spinners on six lanes around the tower, some throwing headlight beams through the haze: the scale cue. |
+| **Atmosphere** | Low mist layer, volumetric haze, fine rain, a teal cloud ceiling lit warm where the tower's light hits it. |
+
+## Reference study
+
+The design was checked against 19 frames from Cyberpunk 2077, Blade Runner 2049 and Ghostrunner; see [`docs/inspiration.md`](docs/inspiration.md) for what was learned and how it was applied.
 
 ## Screenshots (3840 × 2160)
 
@@ -50,6 +56,7 @@ blender/cityparts/
   spire_details.py                signature details: light currents, spinal shafts, catwalks,
                                   lotus crown, wave canopy, kanji screens, koi pond, steam,
                                   flow rails, hover-car, sweep/loft helpers
+  backdrop.py                     midfield towers, megastructures, air traffic
   freeform.py                     freeform engine: lofted sculpted towers, hex exoskeletons
   hive.py                         capsule module meshes
   shops.py                        shop interiors

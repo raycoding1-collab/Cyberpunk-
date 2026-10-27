@@ -6,11 +6,11 @@ from . import scene
 
 # name: (location, target, lens mm, extra)
 SHOTS = {
-    '01_hero_street': dict(loc=(-34.0, -118.0, 1.7), tgt=(3.0, 0.0, 104.0), lens=18, rain=True, rain_count=2500),
+    '01_hero_street': dict(loc=(-34.0, -118.0, 1.7), tgt=(3.0, 0.0, 104.0), lens=18, rain=True, rain_count=1600),
     '02_worms_eye': dict(loc=(33.5, -36.0, 1.6), tgt=(0.0, 0.0, 190.0), lens=14),
     '03_capsule_bands': dict(loc=(44.0, -26.0, 96.0), tgt=(0.0, 0.0, 92.0), lens=32),
-    '04_shopfront_rain': dict(loc=(-6.0, -40.5, 1.65), tgt=(6.0, -30.5, 3.2), lens=22, rain=True),
-    '05_hover_car': dict(loc=(4.5, -47.5, 0.95), tgt=(12.0, -41.0, 1.2), lens=30, rain=True, dof=(8.5, 2.8)),
+    '04_shopfront_rain': dict(loc=(-6.0, -40.5, 1.65), tgt=(6.0, -30.5, 3.2), lens=22, rain=True, rain_count=4500),
+    '05_hover_car': dict(loc=(8.0, -58.0, 1.0), tgt=(4.0, 0.0, 20.0), lens=24, rain=True, rain_count=2200, shift=(0.0, 0.18)),
     '06_crown_halo': dict(loc=(62.0, -64.0, 214.0), tgt=(0.0, 0.0, 200.0), lens=34),
     '07_crown_above_mist': dict(loc=(-120.0, -165.0, 238.0), tgt=(0.0, 0.0, 168.0), lens=26),
     '09_koi_pond': dict(loc=(-63.0, -37.0, 3.2), tgt=(-42.0, -4.0, 10.0), lens=20, rain=True, rain_count=4000),
@@ -43,7 +43,7 @@ def make_rain(cam_ob, count=9000, near=1.0, far=48.0, seed=5):
         sx, sy = R.uniform(-1.1, 1.1), R.uniform(-1.1, 1.1)
         c = pos + d * (fwd + right * sx * hf + upv * sy * vf)
         L = R.uniform(0.45, 0.85) * (0.6 + 0.4 * min(1.0, d / 10))
-        w = 0.0045 + 0.0012 * d ** 0.5
+        w = 0.003 + 0.0008 * d ** 0.5
         a = c - wind * L / 2
         b = c + wind * L / 2
         side = wind.cross((c - pos).normalized()).normalized() * w
@@ -51,10 +51,10 @@ def make_rain(cam_ob, count=9000, near=1.0, far=48.0, seed=5):
     g = M.G('Rain')
     t = g.n('ShaderNodeBsdfTransparent')
     gl = g.n('ShaderNodeBsdfGlossy', Roughness=0.2)
-    e = g.n('ShaderNodeEmission', Strength=0.06)
+    e = g.n('ShaderNodeEmission', Strength=0.02)
     e.inputs['Color'].default_value = (0.75, 0.82, 1.0, 1)
     mx = g.n('ShaderNodeMixShader')
-    mx.inputs[0].default_value = 0.2
+    mx.inputs[0].default_value = 0.12
     g.link(t.outputs[0], mx.inputs[1])
     g.link(gl.outputs[0], mx.inputs[2])
     add = g.n('ShaderNodeAddShader')

@@ -578,11 +578,13 @@ def hover_car(col, origin=(12.0, -41.5, 0.0), heading=0.0):
             sphere(mb, hub, 0.2, 3, rings=6, seg=10)
             arm = [hub.lerp(pod, t) + UP * (0.15 * math.sin(math.pi * t)) for t in (0, 0.25, 0.5, 0.75, 1.0)]
             sweep(mb, arm, lambda t: [(-0.09, -0.14 * (1 - 0.4 * t)), (0.09, -0.14 * (1 - 0.4 * t)), (0.09, 0.14 * (1 - 0.4 * t)), (-0.09, 0.14 * (1 - 0.4 * t))], 2, caps=True)
-            nac = [pod + Vector((0.95 * (t - 0.5), 0.0, 0.0)) for t in [k / 10 for k in range(11)]]
-            sweep(mb, nac, lambda t: [((0.34 * math.sin(math.pi * min(1, 0.08 + t * 0.92)) ** 0.5) * math.cos(TAU * j / 16), (0.3 * math.sin(math.pi * min(1, 0.08 + t * 0.92)) ** 0.5) * math.sin(TAU * j / 16)) for j in range(16)], 0, caps=True)
-            sweep(mb, ring_path(pod - UP * 0.3, 0.24, 20), rect(0.05, 0.04), 6)
-            mb.cap([(pod.x + 0.2 * math.cos(TAU * j / 16), pod.y + 0.2 * math.sin(TAU * j / 16), pod.z - 0.31) for j in range(16)], 6, flip=True)
-            sweep(mb, ring_path(pod + Vector((0.47, 0, 0)), 0.2, 16), rect(0.03, 0.05), 3)
+            # slim ducted pod: lacquer sleeve, chrome intake lip, glowing exhaust ring
+            nac = [pod + Vector((1.5 * (t - 0.5), 0.0, 0.0)) for t in [k / 12 for k in range(13)]]
+            sweep(mb, nac, lambda t: [((0.23 * (0.78 + 0.22 * math.sin(math.pi * t))) * math.cos(TAU * j / 20), (0.2 * (0.78 + 0.22 * math.sin(math.pi * t))) * math.sin(TAU * j / 20)) for j in range(20)], 0, caps=True)
+            for xo, rr, m in ((0.76, 0.185, 3), (-0.76, 0.17, 6)):
+                ring = [pod + Vector((xo, rr * math.cos(TAU * j / 24), rr * 0.88 * math.sin(TAU * j / 24))) for j in range(24)]
+                sweep(mb, ring + [ring[0]], rect(0.025, 0.04), m, up=Vector((1.0, 0.0, 0.0)))
+            mb.box((pod.x - 0.5, pod.y - 0.012, pod.z - 0.24), (pod.x + 0.5, pod.y + 0.012, pod.z - 0.17), 2)
     # light blades following the nose and tail, tail fin
     nose = [Vector((L / 2 - 0.45 - 0.2 * abs(math.sin(a)), 0.86 * math.sin(a), hz + 0.46)) for a in [(-1.1 + 2.2 * k / 16) for k in range(17)]]
     sweep(mb, nose, rect(0.04, 0.06), 4)
@@ -601,7 +603,7 @@ def hover_car(col, origin=(12.0, -41.5, 0.0), heading=0.0):
         ko.rotation_euler = (Vector(origin) + Vector((0, 0, 1.2)) - ko.location).to_track_quat('-Z', 'Y').to_euler()
         col.objects.link(ko)
     lt = bpy.data.lights.new('CarUnderglow', 'AREA')
-    lt.energy = 900.0
+    lt.energy = 450.0
     lt.color = (0.2, 0.6, 1.0)
     lt.size = 3.5
     lo = bpy.data.objects.new('CarUnderglow', lt)
