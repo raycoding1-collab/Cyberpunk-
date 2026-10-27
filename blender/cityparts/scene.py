@@ -53,7 +53,7 @@ def setup_render(res=(1920, 1080), samples=128, preview=False, final=False, time
     sc.render.resolution_x, sc.render.resolution_y = res
     sc.render.resolution_percentage = 100
     sc.render.film_transparent = False
-    sc.render.use_persistent_data = True
+    sc.render.use_persistent_data = False
     sc.render.threads_mode = 'AUTO'
     sc.render.image_settings.file_format = 'PNG'
     sc.render.image_settings.color_depth = '8'

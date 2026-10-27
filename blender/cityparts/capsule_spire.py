@@ -17,6 +17,7 @@ from mathutils import Matrix, Vector
 
 from . import materials as M
 from . import shops, signs
+from . import spire_details as D
 from .freeform import TAU, Tower
 from .hive import capsule_mesh
 from .holo import koi_material, koi_mesh
@@ -144,47 +145,8 @@ def build(seed=31):
     for zz in range(12, int(H - CORE_Z0), 24):
         T.ribbon(mb, 7, float(zz), 0.25, 0.0, 0.35)
 
-    # --- lift shafts in two valleys of the core, tied back by bridges ---
     shaft_angles = [math.pi / 4 + 0.2, math.pi * 5 / 4 + 0.2]
-    for k, sa in enumerate(shaft_angles):
-        p = T.point(sa, 70.0, 7.5)
-        cx, cy = p.x, p.y
-        ringp = lambda r, z: [(cx + r * math.cos(TAU * j / 24), cy + r * math.sin(TAU * j / 24), z) for j in range(24)]
-        mb.ring_strip(ringp(2.4, 4.0), ringp(2.4, H + 4.0), 3)
-        for zz in range(6, int(H) + 4, 4):
-            mb.ring_strip(ringp(2.48, zz), ringp(2.48, zz + 0.3), 2)
-        for j in range(0, 24, 6):
-            a = TAU * j / 24
-            mb.box((cx + 2.45 * math.cos(a) - 0.12, cy + 2.45 * math.sin(a) - 0.12, 4.0),
-                   (cx + 2.45 * math.cos(a) + 0.12, cy + 2.45 * math.sin(a) + 0.12, H + 4.0), 2)
-        for cz in (R.uniform(30, 90), R.uniform(110, 180)):
-            mb.ring_strip(ringp(1.5, cz), ringp(1.5, cz + 3.0), 4)
-            mb.cap(ringp(1.5, cz + 3.0), 4)
-        for zz in range(int(CORE_Z0) + 10, int(H) - 4, 22):
-            q = T.point(sa, zz - CORE_Z0, 0.0)
-            mb.beam((q.x, q.y, zz), (cx, cy, zz), 1.6, 0.5, 2)
-            mb.beam((q.x, q.y, zz + 0.3), (cx, cy, zz + 0.3), 0.06, 0.06, 5)
-        mb.box((cx - 0.4, cy - 0.4, H + 4.0), (cx + 0.4, cy + 0.4, H + 5.0), 8)
 
-    # --- crown: spire, halos ---
-    tip = T.point(0, H - CORE_Z0)
-    spire = lambda r, z: [(r * math.cos(TAU * j / 16), r * math.sin(TAU * j / 16), z) for j in range(16)]
-    mb.ring_strip(spire(3.0, H), spire(0.25, H + 58.0), 2)
-    for zb in (H + 30.0, H + 57.0):
-        mb.box((-0.7, -0.7, zb), (0.7, 0.7, zb + 1.0), 8)
-    for (R0, r0, zz, m) in ((21.0, 0.45, H - 6.0, 6), (16.5, 0.3, H + 3.0, 5), (12.0, 0.22, H + 10.0, 6)):
-        seg, sides = 128, 8
-        verts, faces = [], []
-        for i in range(seg):
-            a = TAU * i / seg
-            for j in range(sides):
-                s = TAU * j / sides
-                rr = R0 + r0 * math.cos(s)
-                verts.append((rr * math.cos(a), rr * math.sin(a), zz + r0 * math.sin(s)))
-        for i in range(seg):
-            for j in range(sides):
-                faces.append((i * sides + j, ((i + 1) % seg) * sides + j, ((i + 1) % seg) * sides + (j + 1) % sides, i * sides + (j + 1) % sides))
-        mb.add(verts, faces, m)
     mb.to_object('SpireCore', mats, col)
 
     # --- exoskeleton on the upper third ---
@@ -209,7 +171,7 @@ def build(seed=31):
         pts = [T.point(TAU * i / 180, zl) for i in range(180)]
         circ = sum((pts[i] - pts[i - 1]).length for i in range(180))
         cnt = int(circ // 3.35)
-        off = (z * 0.013) % 1.0
+        off = 0.5 * (int(round((z - CORE_Z0) / 3.3)) % 2)   # staggered rows: scales
         for i in range(cnt):
             th = TAU * (i + off) / cnt
             band = ((3 * th / TAU) - (z / 64.0)) % 1.0
@@ -226,18 +188,21 @@ def build(seed=31):
             o = bpy.data.objects.new('Cap', meshes[v])
             jit = R.choice([0.0, 0.0, 0.4, 0.8])
             o.location = (p.x + nh.x * jit, p.y + nh.y * jit, z)
-            o.rotation_euler = (0.0, 0.0, math.atan2(nh.y, nh.x))
+            o.rotation_euler = (0.0, math.radians(9.0), math.atan2(nh.y, nh.x) + math.radians(7.0))
             caps_col.objects.link(o)
             n += 1
         z += 3.3
     print(f'[capsule spire] {n} capsules')
+    D.spiral_currents(col, T, CORE_Z0, H)
+    D.spinal_shafts(col, T, shaft_angles, CORE_Z0, H)
+    D.lotus_crown(col, T, CORE_Z0, H, target=(4.0, -46.0, 118.0))
 
     # --- architectural floodlights on the podium roof, grazing up the tower ---
     for k in range(8):
         th = TAU * k / 8 + 0.39
         base = T.point(th, 0.0, 9.0)
         lt = bpy.data.lights.new(f'Uplight{k}', 'SPOT')
-        lt.energy = 2.6e5
+        lt.energy = 1.4e6
         lt.color = (1.0, 0.78, 0.55) if k % 2 == 0 else (0.55, 0.8, 1.0)
         lt.spot_size = math.radians(22)
         lt.spot_blend = 0.6
@@ -251,10 +216,10 @@ def build(seed=31):
     # --- podium -------------------------------------------------------------
     build_podium(col)
     build_plaza(col)
-    hover_car(col)
+    D.hover_car(col)
     koi = koi_mesh(46.0, 1.3)
     km = MeshBuilder()
-    km.merge(koi, matrix=Matrix.Translation((0.0, -40.0, 150.0)) @ Matrix.Rotation(math.radians(178), 4, 'Z') @ Matrix.Rotation(math.radians(-6), 4, 'Y'))
+    km.merge(koi, matrix=Matrix.Translation((4.0, -46.0, 118.0)) @ Matrix.Rotation(math.radians(178), 4, 'Z') @ Matrix.Rotation(math.radians(-6), 4, 'Y'))
     km.to_object('SpireKoi', [koi_material('SpireKoiHolo', 4.5)], col, smooth=True)
     build_silhouettes(col)
     return col
@@ -262,8 +227,8 @@ def build(seed=31):
 
 def build_podium(col):
     conc = M.concrete('PodiumConcrete', tone=0.12, panel=(3.0, 1.0), streaks=0.4)
-    glaze = M.window_wall('PodiumRestaurant', cell_w=2.2, floor_h=6.0, lit=0.85, strength=1.6, mullion=0.14, office=False,
-                          warm=(1.0, 0.6, 0.3), cool=(1.0, 0.75, 0.5), accent=(1.0, 0.3, 0.5), spandrel=0.12)
+    glaze = M.window_wall('PodiumRestaurant', cell_w=1.6, floor_h=5.0, lit=0.45, strength=1.5, mullion=0.1, office=False, zone=3,
+                          warm=(1.0, 0.5, 0.2), cool=(1.0, 0.62, 0.32), accent=(1.0, 0.25, 0.55), spandrel=0.12, glass=(0.006, 0.006, 0.008))
     steel = M.metal('PodiumSteel', base=(0.04, 0.04, 0.045), rough=0.3)
     down = M.emission('CanopyDown', (1.0, 0.85, 0.65), 10.0)
     line = M.emission('PodiumLine', (0.1, 0.8, 1.0), 18.0)
@@ -283,22 +248,13 @@ def build_podium(col):
         mb.box((P - 1.6, x - 0.06, 7.0), (P - 1.2, x + 0.06, 12.0), 2)
     # upper band: ribbed concrete crown of the podium
     mb.box((-P, -P, 12.0), (P, P, 24.0), 0)
-    for t in range(-29, 30):
-        x = t * 1.0
-        mb.box((x - 0.16, -P - 0.35, 12.5), (x + 0.16, -P, 23.5), 0)
-        mb.box((P, x - 0.16, 12.5), (P + 0.35, x + 0.16, 23.5), 0)
     for zz in (12.0, 24.0):
         mb.box((-P - 0.5, -P - 0.5, zz - 0.25), (P + 0.5, P + 0.5, zz + 0.05), 0)
         mb.box((-P - 0.52, -P - 0.52, zz - 0.18), (P + 0.52, -P - 0.5, zz - 0.1), 4)
         mb.box((P + 0.5, -P - 0.52, zz - 0.18), (P + 0.52, P + 0.52, zz - 0.1), 4)
-    # canopy over the shopfronts with linear downlights
-    mb.box((-P - 4.5, -P - 4.5, 5.6), (P + 4.5, -P, 6.0), 2)
-    mb.box((P, -P - 4.5, 5.6), (P + 4.5, P + 4.5, 6.0), 2)
-    for k in range(3):
-        o = 1.2 + k * 1.3
-        mb.box((-P - 4.0, -P - o - 0.08, 5.58), (P + 4.0, -P - o + 0.08, 5.6), 3, faces=(0, 0, 0, 0, 1, 0))
-        mb.box((P + o - 0.08, -P - 4.0, 5.58), (P + o + 0.08, P + 4.0, 5.6), 3, faces=(0, 0, 0, 0, 1, 0))
     mb.to_object('Podium', mats, col)
+    D.canopy_wave(col, P)
+    D.kanji_screens(col, P)
 
     # shops: east face built in place, south face built in the same frame and rotated
     shops.build_arcade(col, P, [(-P + 9.0, P - 1.0)], [-12.0, 0.0, 12.0], height=5.0, depth=9.0, seed=2)
@@ -312,10 +268,6 @@ def build_podium(col):
     # the tower's name in 3D neon on the podium crown + a blade at the corner
     red = M.neon('PodiumNeonRed', (1.0, 0.1, 0.25), 9.0)
     white = M.neon('PodiumNeonWhite', (0.85, 0.95, 1.0), 7.0)
-    signs.text_object('蜂巣塔', 'DelaGothicOne-Regular.ttf', 8.5, 'PodiumKanji', col, red,
-                      location=(-8.0, -P - 0.5, 18.4), rotation=(math.pi / 2, 0, 0), extrude=0.25, bevel=0.06)
-    signs.text_object('CAPSULE SPIRE', 'Orbitron-Black.ttf', 2.6, 'PodiumLatin', col, white,
-                      location=(16.0, -P - 0.5, 15.0), rotation=(math.pi / 2, 0, 0), extrude=0.12, bevel=0.03)
     panel = M.metal('BladePanel2', base=(0.02, 0.02, 0.025), rough=0.4)
     cyan = M.neon('CornerBladeNeon', (0.1, 0.85, 1.0), 14.0)
     glyph = M.emission('CornerBladeGlyph', (0.1, 0.85, 1.0), 1.8)
@@ -358,6 +310,9 @@ def build_plaza(col):
         x = -36.0 + k * 1.4
         mb.box((x, -60.5, -0.01), (x + 0.7, -38.2, 0.01), 2)
     mb.to_object('Plaza', mats, col)
+    D.koi_pond(col)
+    D.steam_vents(col)
+    D.flow_rails(col)
 
 
 def build_silhouettes(col, seed=9):

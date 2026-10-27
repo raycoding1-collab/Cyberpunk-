@@ -314,7 +314,7 @@ def capsule_interior(name='CapsuleInterior'):
     sep = g.n('ShaderNodeSeparateXYZ')
     g.link(gen, sep.inputs[0])
     grad = g.ramp(sep.outputs['Z'], [(0.0, (0.35, 0.35, 0.35)), (1.0, (1.4, 1.4, 1.4))])
-    strength = g.math('MULTIPLY_ADD', g.math('FRACT', g.math('MULTIPLY', r, 71.3)), 5.0, 2.0)
+    strength = g.math('MULTIPLY_ADD', g.math('FRACT', g.math('MULTIPLY', r, 71.3)), 7.0, 4.0)
     c = g.mix(1.0, col, grad, 'MULTIPLY')
     e = g.n('ShaderNodeEmission')
     g.link(c, e.inputs['Color'])
@@ -331,7 +331,7 @@ def capsule_porch(name='CapsulePorch'):
     on = g.math('GREATER_THAN', r, 0.25)
     e = g.n('ShaderNodeEmission')
     e.inputs['Color'].default_value = (1.0, 0.78, 0.55, 1)
-    g.link(g.math('MULTIPLY', on, g.math('MULTIPLY_ADD', r, 6.0, 4.0)), e.inputs['Strength'])
+    g.link(g.math('MULTIPLY', on, g.math('MULTIPLY_ADD', r, 10.0, 8.0)), e.inputs['Strength'])
     return g.done(e.outputs[0])
 
 
