@@ -1,30 +1,27 @@
-# Neo-Kowloon Sector 7 — The Canyon
+# The Capsule Spire
 
-A cyberpunk city district designed as architecture, not as a field of boxes:
-a handful of signature buildings around one rain-soaked street canyon,
-modelled procedurally in Python and path-traced in **Blender Cycles**
-(physically based light transport: neon actually lights the concrete,
-reflections are real, the haze scatters every lamp).
+One piece of a cyberpunk world, designed and detailed throughout: a
+freestanding capsule-housing megastructure on a rain-soaked corner of
+Neo-Kowloon. Everything is generated from Python in Blender and
+path-traced in **Cycles**, so neon really lights the concrete, the wet
+plaza really mirrors the tower, and the haze scatters every lamp.
 
-Everything is generated from code in [`blender/`](blender/): geometry,
-materials, signage artwork, holograms, atmosphere, cameras.
+![Hero view](screenshots/01_hero_street.jpg)
 
-![Canyon hero](screenshots/01_canyon_hero.jpg)
+## The design
 
-## The buildings
-
-| | Design |
+| Element | What it is |
 |---|---|
-| **The Hive** | A terraced capsule megastructure. Four freestanding concrete pylons (service cores with glass lift shafts and colour-coded light slots) carry six receding terraces. Each terrace band is a frame into which ~4,400 prefabricated capsule homes are plugged — Nakagin-style porthole units, louvred studios and balcony units — each with its own interior light, porch downlight, drip edge and vent. Terrace slabs are drawn with continuous light lines and wash the capsules with grazing light. At street level a colonnaded arcade holds real shop interiors (ramen counters with lanterns, a cyber clinic, a neon bar, convenience stores with stocked shelves, roller-shuttered units) with their names in 3D lettering. |
-| **The Spire** | The Kagemori arcology, 1 km tall, closing the end of the canyon. A chamfered-octagon golden glass core tapers from 84 m to 34 m, wrapped by a staggered bronze diagrid whose nodes carry amber lamps. Two sky lobbies are carved out of the core with gardens glowing behind the frame. Four blades lean together around a beacon, ringed by floating halos; a needle carries the aircraft lights. A monumental portal opens onto a plaza with a black reflecting pool; searchlights rake the haze. |
-| **The Helix** | 76 superelliptic floor plates, each rotated 1.2° from the one below — a quarter turn over 300 m. Every slab edge carries an LED line drifting from cyan to violet with height, so the twist reads as spiralling bands of light. Fins follow the rotation; a lantern crown and needle cap it; it lands in a clear-glazed lobby drum around a warm timber core. |
-| **The Monolith** | A 250 m board-formed concrete slab whose canyon face is a deep egg-crate of fins and floor ledges with rooms glowing at the back of every cell. Two colossal LED media walls hang proud of the grid in heavy bezels. It stands on giant pilotis over a glazed lobby and is capped by a crown cantilevering over the street, lit from beneath, with a rooftop sky-lounge, helipad and lattice masts. |
-| **Bridges** | A sculpted maglev viaduct on Y-piers with a streamlined train crossing the canyon, and a ribbed glass sky-tube linking a Hive pylon to the Monolith. |
-| **Holograms** | Two giant koi swimming through the canyon air: lofted bodies on an S-curved spine with twin-lobed tails, fins and barbels, rendered as pure light (kohaku patches, projected wire grid, scanlines, rim glow). |
-
-Around them: a dense mid-rise city fabric and a distant skyline that the
-haze turns into layered silhouettes, a low-lying mist layer, rain streaks
-that catch the neon, wet asphalt with puddles and embedded light rails.
+| **Sculpted core** | A four-lobed concrete core that tapers and makes a quarter turn over 180 m (lofted freeform surface), skinned with slit windows. |
+| **Capsule scales** | ~630 capsule homes (porthole, louvred and balcony units: rounded shells, drip edges, vents, porch lights, lit rooms behind glass) plugged into the core in three helical currents, tilted and staggered like koi scales. |
+| **Light currents** | Neon tubes trace the edges of the capsule currents; light pulses run up the spiral. |
+| **Spinal lift shafts** | Two glass shafts in the core's valleys, wrapped in vertebrae (rings with fins reaching for the core), cabins as glowing beads, tied back by sagging tendon catwalks hung with red lanterns. |
+| **Exoskeleton** | A hexagonal steel shell on the upper third, its cells tightening with height; Wireframe + Subdivision give it organic, flowing nodes. |
+| **Lotus crown** | Eight cantilevered petals with neon edges around a finned beacon needle; projectors at the petal tips cast the holographic koi that circles the tower. |
+| **Podium** | Real shop interiors (ramen bar with lanterns, clinic, neon bar, stocked mart, shuttered units) behind glazing, 3D shop names, a wave canopy of curved lit ribs, a glazed restaurant level, and perforated metal screens on all four faces with kanji cut out of them, glowing from behind. |
+| **Plaza** | Wet stone paving, a raised black koi pond with holographic lilies, lotus flowers and koi, steam vents, light rails that flow toward the tower, a street with lane lights. |
+| **Hover-car** | Syd Mead-inspired: lofted lacquer-red/graphite body with panel seams and a cyan pinstripe, tinted canopy over a glowing dash, four thruster nacelles on articulated swing arms. |
+| **Atmosphere** | Low mist layer, volumetric haze, rain streaks that catch the neon, a glowing cloud ceiling, distant sculpted towers reduced to silhouettes. |
 
 ## Screenshots (3840 × 2160)
 
@@ -32,38 +29,39 @@ See [`screenshots/`](screenshots/).
 
 ## Rendering it yourself
 
-Requires Python 3.13 and the `bpy` wheel (Blender as a module) plus Pillow:
+Requires Python 3.13 with the `bpy` wheel (Blender as a module) and Pillow:
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install bpy pillow numpy
-# quick previews
+# previews
 .venv/bin/python blender/build.py --shots all --res 960x540 --samples 16 --out renders/preview
-# final 4K stills
+# 4K finals
 .venv/bin/python blender/build.py --shots all --res 3840x2160 --samples 40 --final --out renders/4k
-# or save the scene to open in Blender
-.venv/bin/python blender/build.py --shots '' --save neo_kowloon.blend
+# save the scene to open in Blender
+.venv/bin/python blender/build.py --save capsule_spire.blend
 ```
 
-Shots are defined in [`blender/cityparts/shots.py`](blender/cityparts/shots.py).
-
-## Layout
+## Code
 
 ```
-blender/build.py                 entry point (build scene, render shots, save .blend)
+blender/build.py                  entry point: build the scene, render shots, save .blend
 blender/cityparts/
-  hive.py  shops.py              capsule megastructure + arcade shop interiors
-  spire.py                       the arcology
-  helix.py                       twisting tower
-  monolith.py                    brutalist media slab
-  bridges.py                     maglev viaduct, train, sky tube
-  holo.py                        holographic koi
-  signs.py                       3D neon lettering, blade signs, poster artwork
-  street.py fabric.py skyline.py canyon floor, city fabric, background towers
-  materials.py                   Cycles node materials (concrete, curtain walls,
-                                 capsules, wet asphalt, LED screens, holograms)
-  scene.py shots.py util.py      render/atmosphere setup, cameras, mesh helpers
-assets/fonts/                    OFL fonts (Google Fonts)
-assets/generated/                generated poster artwork for the media walls
+  capsule_spire.py                the tower: core, capsule scales, podium, plaza, uplighting
+  spire_details.py                signature details: light currents, spinal shafts, catwalks,
+                                  lotus crown, wave canopy, kanji screens, koi pond, steam,
+                                  flow rails, hover-car, sweep/loft helpers
+  freeform.py                     freeform engine: lofted sculpted towers, hex exoskeletons
+  hive.py                         capsule module meshes
+  shops.py                        shop interiors
+  holo.py                         holographic koi
+  signs.py                        3D lettering, neon tubes, poster art
+  materials.py                    Cycles node materials
+  scene.py shots.py clouds.py     render/atmosphere setup, cameras, cloud deck
+assets/fonts/                     OFL fonts (Google Fonts)
 ```
 
-All brand names in the scene (Kagemori, Yurei, Mirai, Zenith) are invented.
+Earlier modules (`spire.py`, `helix.py`, `monolith.py`, `bridges.py`, `street.py`,
+`skyline.py`, `fabric.py`) belong to the first, city-scale version and are not
+part of the default build.
+
+All brand names in the scene are invented.
