@@ -25,6 +25,7 @@ SIGN_COLORS = {
 }
 
 
+@M.cached
 def goods_material():
     g = M.G('ShopGoods')
     uv = g.coords('UV')
@@ -43,6 +44,7 @@ def goods_material():
     return g.done(b.outputs[0])
 
 
+@M.cached
 def shutter_material():
     g = M.G('RollerShutter')
     uv = g.coords('UV')

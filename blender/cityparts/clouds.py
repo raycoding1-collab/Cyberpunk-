@@ -6,7 +6,7 @@ The Spire's needle pierces the deck."""
 from . import materials as M
 from .util import MeshBuilder, collection
 
-Z = 950.0
+Z = 560.0
 
 
 def cloud_material(name, scale, density, glow):

@@ -6,16 +6,14 @@ from . import scene
 
 # name: (location, target, lens mm, extra)
 SHOTS = {
-    '01_canyon_hero': dict(loc=(7.0, 30.0, 1.6), tgt=(-4.0, 400.0, 205.0), lens=15, rain=True),
-    '02_koi_overhead': dict(loc=(12.0, 96.0, 1.7), tgt=(-4.0, 142.0, 78.0), lens=14, rain=True),
-    '03_media_wall': dict(loc=(-12.0, 150.0, 40.0), tgt=(18.0, 250.0, 120.0), lens=22),
-    '04_capsule_wall': dict(loc=(-6.0, 66.0, 74.0), tgt=(-25.0, 92.0, 66.0), lens=32, dof=(27.0, 2.2)),
-    '05_spire_vista': dict(loc=(-8.0, 330.0, 60.0), tgt=(0.0, 700.0, 520.0), lens=26),
-    '06_aerial_city': dict(loc=(-230.0, -420.0, 520.0), tgt=(15.0, 560.0, 430.0), lens=20),
-    '07_helix_twist': dict(loc=(26.0, 50.0, 1.8), tgt=(78.0, 86.0, 250.0), lens=14),
-    '08_spire_plaza': dict(loc=(14.0, 560.0, 0.9), tgt=(0.0, 700.0, 48.0), lens=16, exposure=-0.2),
-    '09_canyon_south': dict(loc=(2.0, 262.0, 128.0), tgt=(-2.0, 0.0, 30.0), lens=20),
-    '10_street_south': dict(loc=(5.0, -110.0, 1.6), tgt=(-3.0, 300.0, 175.0), lens=15, rain=True),
+    '01_hero_street': dict(loc=(-34.0, -118.0, 1.7), tgt=(3.0, 0.0, 104.0), lens=18, rain=True),
+    '02_worms_eye': dict(loc=(33.5, -36.0, 1.6), tgt=(0.0, 0.0, 190.0), lens=14),
+    '03_capsule_bands': dict(loc=(44.0, -26.0, 96.0), tgt=(0.0, 0.0, 92.0), lens=32),
+    '04_shopfront_rain': dict(loc=(-6.0, -40.5, 1.65), tgt=(6.0, -30.5, 3.2), lens=22, rain=True),
+    '05_hover_car': dict(loc=(4.5, -47.5, 0.95), tgt=(12.0, -41.0, 1.2), lens=30, rain=True, dof=(8.5, 2.8)),
+    '06_crown_halo': dict(loc=(62.0, -64.0, 214.0), tgt=(0.0, 0.0, 200.0), lens=34),
+    '07_aerial_mist': dict(loc=(-150.0, -210.0, 250.0), tgt=(0.0, 0.0, 115.0), lens=28),
+    '08_telephoto': dict(loc=(140.0, -330.0, 22.0), tgt=(0.0, 0.0, 120.0), lens=55),
 }
 
 
