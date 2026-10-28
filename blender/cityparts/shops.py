@@ -29,7 +29,7 @@ SIGN_COLORS = {
 def goods_material():
     g = M.G('ShopGoods')
     uv = g.coords('UV')
-    br = g.n('ShaderNodeTexBrick', Scale=1.0, **{'Mortar Size': 0.012, 'Brick Width': 0.14, 'Row Height': 0.22, 'Bias': 0.0})
+    br = g.n('ShaderNodeTexBrick', Scale=1.0, **{'Mortar Size': 0.01, 'Brick Width': 0.085, 'Row Height': 0.27, 'Bias': 0.0})
     br.offset = 0.37
     br.inputs['Color1'].default_value = (0, 0, 0, 1)
     br.inputs['Color2'].default_value = (1, 1, 1, 1)
@@ -37,10 +37,10 @@ def goods_material():
     g.link(uv, br.inputs['Vector'])
     sep = g.n('ShaderNodeSeparateColor')
     g.link(br.outputs['Color'], sep.inputs[0])
-    col = g.ramp(sep.outputs[0], [(0.0, (0.9, 0.12, 0.1)), (0.18, (1.0, 0.8, 0.1)), (0.32, (0.1, 0.4, 0.95)),
-                                   (0.48, (0.95, 0.95, 0.92)), (0.62, (0.1, 0.7, 0.3)), (0.76, (1.0, 0.4, 0.7)), (0.88, (0.2, 0.2, 0.22))], 'CONSTANT')
+    col = g.ramp(sep.outputs[0], [(0.0, (0.55, 0.12, 0.1)), (0.15, (0.8, 0.78, 0.72)), (0.3, (0.12, 0.22, 0.4)), (0.42, (0.62, 0.5, 0.18)),
+                                   (0.55, (0.85, 0.85, 0.82)), (0.66, (0.15, 0.35, 0.22)), (0.78, (0.5, 0.3, 0.38)), (0.9, (0.12, 0.12, 0.13))], 'LINEAR')
     col = g.mix(br.outputs['Fac'], col, (0.03, 0.03, 0.03))
-    b = g.bsdf(**{'Base Color': col, 'Roughness': 0.35, 'Emission Color': col, 'Emission Strength': 0.35})
+    b = g.bsdf(**{'Base Color': col, 'Roughness': 0.35, 'Emission Color': col, 'Emission Strength': 0.08})
     return g.done(b.outputs[0])
 
 

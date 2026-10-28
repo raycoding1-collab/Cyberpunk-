@@ -20,7 +20,7 @@ TAU = 2 * math.pi
 ASSETS = __file__.rsplit('/blender/', 1)[0] + '/assets/generated/'
 
 # camera positions whose view toward the Spire must stay clear
-SIGHTLINES = [(-34.0, -118.0), (140.0, -330.0), (-120.0, -165.0), (62.0, -64.0), (8.0, -58.0)]
+SIGHTLINES = [(-34.0, -118.0), (140.0, -330.0), (-120.0, -165.0), (62.0, -64.0), (18.0, -49.0)]
 # towers already placed by capsule_spire.build_silhouettes
 TAKEN = [(-260, 320), (220, 380), (-420, 650), (380, 700), (40, 900), (-150, 1200), (520, 1100), (-640, 980), (300, -380), (-380, -260)]
 
