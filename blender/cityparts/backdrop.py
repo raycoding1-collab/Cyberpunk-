@@ -48,21 +48,34 @@ def _screen(mb, t, mat, th0, th1, z0, z1, off=0.7, n=10):
     mb.add(verts, faces, mat, uvs)
 
 
+def _vstrip(mb, t, mat, th, z0, z1, w=0.04, off=0.3, n=16):
+    """A vertical light strip following the tower surface."""
+    zs = [z0 + (z1 - z0) * i / n for i in range(n + 1)]
+    left = [tuple(t.point(th - w, z, off)) for z in zs]
+    right = [tuple(t.point(th + w, z, off)) for z in zs]
+    mb.add(left + right, [(i, n + 1 + i, n + 2 + i, i + 1) for i in range(n)], mat)
+
+
 def midfield(col, seed=21, count=46):
     R = rng(seed)
-    walls = [M.window_wall(f'CityWin{i}', cell_w=c, floor_h=f, lit=l, strength=s, mullion=m, office=o, zone=z,
+    # small, dim windows: at this distance they must read as pin-points
+    walls = [M.window_wall(f'CityWin{i}', cell_w=c, floor_h=f, lit=l, strength=s, mullion=m, office=o, zone=z, spandrel=0.42,
                            warm=(1.0, 0.66, 0.36), cool=(0.62, 0.8, 1.0), accent=(1.0, 0.3, 0.7))
-             for i, (c, f, l, s, m, o, z) in enumerate([(1.4, 3.6, 0.34, 4.0, 0.55, True, 5), (1.8, 3.3, 0.42, 3.4, 0.7, False, 3),
-                                                        (1.2, 4.0, 0.28, 4.6, 0.5, True, 7), (2.2, 3.4, 0.5, 3.0, 0.9, False, 2)])]
+             for i, (c, f, l, s, m, o, z) in enumerate([(1.0, 3.4, 0.24, 2.6, 0.5, True, 6), (1.2, 3.2, 0.3, 2.2, 0.62, False, 3),
+                                                        (0.9, 3.6, 0.2, 3.0, 0.45, True, 8), (1.4, 3.3, 0.34, 2.0, 0.8, False, 2)])]
     shell = M.metal('CityCrown', base=(0.03, 0.032, 0.036), rough=0.4)
     bands = [M.emission(f'CityBand{i}', c, s) for i, (c, s) in enumerate([((0.1, 0.85, 1.0), 14.0), ((1.0, 0.1, 0.5), 16.0),
                                                                           ((1.0, 0.55, 0.15), 12.0), ((0.55, 0.3, 1.0), 14.0)])]
-    soffit = M.emission('CityCrownSoffit', (0.75, 0.88, 1.0), 6.0)
+    soffits = [M.emission(f'CitySoffit{i}', c, 3.0) for i, c in enumerate([(0.75, 0.88, 1.0), (1.0, 0.62, 0.3), (1.0, 0.3, 0.6)])]
     red = M.emission('CityBeacon', (1.0, 0.04, 0.02), 80.0)
     posters = ['poster_dream.png', 'poster_eye.png']
     screens = [M.image_emission(f'CityScreen{i}', ASSETS + p, strength=3.5, alpha_cut=False) for i, p in enumerate(posters)]
-    mats = walls + [shell] + bands + [soffit, red] + screens
-    I_SHELL, I_BAND, I_SOFF, I_RED, I_SCR = len(walls), len(walls) + 1, len(walls) + 5, len(walls) + 6, len(walls) + 7
+    mats = walls + [shell] + bands + soffits + [red] + screens
+    I_SHELL = len(walls)
+    I_BAND = I_SHELL + 1
+    I_SOFF = I_BAND + len(bands)
+    I_RED = I_SOFF + len(soffits)
+    I_SCR = I_RED + 1
     mb = MeshBuilder()
     placed = [(x, y, 30.0) for x, y in TAKEN]
     made = 0
@@ -79,34 +92,58 @@ def midfield(col, seed=21, count=46):
         made += 1
         # nearer towers stay lower so the Spire keeps the skyline
         h = R.uniform(70.0, 150.0) + (rad - 170.0) * R.uniform(0.15, 0.45)
-        b = a * R.uniform(0.55, 1.0)
-        n = R.uniform(2.6, 6.0)
-        set1 = R.uniform(0.45, 0.75)
-        prof = [(0.0, (a, b, n)), (h * set1 - 0.1, (a, b, n)), (h * set1 + 0.1, (a * 0.82, b * 0.84, n)), (h, (a * 0.7, b * 0.72, n))]
+        kind = R.random()
         a0 = R.uniform(0, TAU)
-        t = Tower(x, y, h, profile=prof, twist=[(0, a0), (h, a0 + R.uniform(-0.6, 0.6))],
-                  lobes=(R.choice([3, 4, 6]), [(0, R.uniform(0.04, 0.18)), (h, 0.04)], R.uniform(0, 1)) if R.random() < 0.4 else None)
+        lobes = None
+        if kind < 0.4:  # slab with one or two setbacks, lit edge strips
+            n, b = R.uniform(6.0, 10.0), a * R.uniform(0.35, 0.55)
+            steps = sorted(R.sample([0.45, 0.6, 0.75, 0.85], R.randint(1, 2)))
+            twist = [(0, a0), (h, a0)]
+        elif kind < 0.7:  # stepped tower
+            n, b = R.uniform(3.5, 6.0), a * R.uniform(0.7, 1.0)
+            steps = [0.4, 0.65, 0.85]
+            twist = [(0, a0), (h, a0)]
+        else:  # sculpted: lobed and twisting
+            n, b = R.uniform(2.4, 4.0), a * R.uniform(0.6, 1.0)
+            steps = [R.uniform(0.5, 0.75)]
+            twist = [(0, a0), (h, a0 + R.uniform(-0.6, 0.6))]
+            lobes = (R.choice([3, 4, 6]), [(0, R.uniform(0.04, 0.18)), (h, 0.04)], R.uniform(0, 1))
+        prof = [(0.0, (a, b, n))]
+        ka, kb = a, b
+        for zf in steps:
+            prof.append((h * zf - 0.1, (ka, kb, n)))
+            ka, kb = ka * R.uniform(0.78, 0.88), kb * R.uniform(0.8, 0.9)
+            prof.append((h * zf + 0.1, (ka, kb, n)))
+        prof.append((h, (ka, kb, n)))
+        t = Tower(x, y, h, profile=prof, twist=twist, lobes=lobes)
         wi = R.randrange(len(walls))
         top = h - R.uniform(6.0, 12.0)
-        t.skin(mb, wi, 0.0, top, n_around=40, dz=8.0)
-        # crown: dark shell with a cantilevered lit soffit, like the Night City slabs
-        t.skin(mb, I_SHELL, top, h, n_around=40, dz=4.0, offset=0.4)
-        t.cap(mb, I_SHELL, h, offset=0.4, n_around=40)
-        over = R.uniform(1.5, 5.0)
-        t.ribbon(mb, I_SHELL, top, 1.2, 0.0, over, n_around=40)
-        t.ribbon(mb, I_SOFF, top - 0.15, 0.15, over - 0.6, over - 0.3, n_around=40)
-        # neon floor bands
-        bi = I_BAND + R.randrange(4)
-        for zz in sorted(R.sample([k * 3.6 for k in range(3, int(top / 3.6) - 1)], min(R.randint(1, 3), max(1, int(top / 3.6) - 4)))):
-            t.ribbon(mb, bi, zz, 0.35, 0.0, 0.3, n_around=40)
-        # tall curved screen on some
-        if R.random() < 0.45:
+        t.skin(mb, wi, 0.0, top, n_around=48, dz=6.0)
+        t.skin(mb, I_SHELL, top, h, n_around=48, dz=4.0, offset=0.4)
+        t.cap(mb, I_SHELL, h, offset=0.4, n_around=48)
+        crown = R.random()
+        if crown < 0.35:  # cantilevered crown with a lit soffit, like the Night City slabs
+            over = R.uniform(1.5, 5.0)
+            t.ribbon(mb, I_SHELL, top, 1.2, 0.0, over, n_around=48)
+            t.ribbon(mb, I_SOFF + R.randrange(len(soffits)), top - 0.15, 0.15, over - 0.6, over - 0.3, n_around=48)
+        elif crown < 0.7:  # neon outline along the parapet
+            t.ribbon(mb, I_BAND + R.randrange(len(bands)), h - 0.7, 0.3, 0.4, 0.7, n_around=48)
+        if R.random() < 0.5:  # one or two neon floor bands
+            floors = [k * 3.4 for k in range(3, int(top / 3.4) - 1)]
+            bi = I_BAND + R.randrange(len(bands))
+            for zz in R.sample(floors, min(R.randint(1, 2), len(floors))):
+                t.ribbon(mb, bi, zz, 0.3, 0.0, 0.3, n_around=48)
+        if kind < 0.4 and R.random() < 0.7:  # lit strips up the slab corners
+            si = I_BAND + R.randrange(len(bands))
+            zb = h * R.uniform(0.05, 0.3)
+            for th in (0.25, 0.75, 1.25, 1.75):
+                _vstrip(mb, t, si, th * math.pi, zb, top - 2.0, w=0.05)
+        if R.random() < 0.45:  # tall curved screen
             th0 = math.atan2(-y, -x) + R.uniform(-0.8, 0.8)
             span = R.uniform(0.35, 0.6)
             zs = R.uniform(0.2, 0.45) * top
             _screen(mb, t, I_SCR + R.randrange(len(screens)), th0, th0 + span, zs, zs + R.uniform(22.0, 40.0))
-        # mast with beacon
-        if R.random() < 0.5:
+        if R.random() < 0.5:  # mast with beacon
             mh = R.uniform(12.0, 30.0)
             mb.box((x - 0.4, y - 0.4, h), (x + 0.4, y + 0.4, h + mh), I_SHELL)
             mb.box((x - 0.7, y - 0.7, h + mh), (x + 0.7, y + 0.7, h + mh + 1.2), I_RED)

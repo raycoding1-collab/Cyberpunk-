@@ -52,7 +52,7 @@ def cloud_material(name, scale, density, glow):
 
 def build():
     col = collection('Clouds')
-    for i, (z, scale, dens, glow) in enumerate(((Z, 0.0011, 0.92, 0.55), (Z + 70.0, 0.0007, 0.75, 0.3))):
+    for i, (z, scale, dens, glow) in enumerate(((Z, 0.0011, 0.92, 0.38), (Z + 70.0, 0.0007, 0.75, 0.2))):
         mb = MeshBuilder()
         mb.add([(-6000, -5000, z), (6000, -5000, z), (6000, 7000, z), (-6000, 7000, z)], [(0, 1, 2, 3)], 0)
         ob = mb.to_object(f'CloudDeck{i}', [cloud_material(f'Cloud{i}', scale, dens, glow)], col)
