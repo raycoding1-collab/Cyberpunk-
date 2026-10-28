@@ -601,6 +601,7 @@ def hover_car(col, origin=(12.0, -41.5, 0.0), heading=0.0):
         ko = bpy.data.objects.new(nm, kl)
         ko.location = (origin[0] + off[0], origin[1] + off[1], off[2])
         ko.rotation_euler = (Vector(origin) + Vector((0, 0, 1.2)) - ko.location).to_track_quat('-Z', 'Y').to_euler()
+        ko.visible_camera = ko.visible_glossy = False  # light the car, never show up as a box in the puddles
         col.objects.link(ko)
     lt = bpy.data.lights.new('CarUnderglow', 'AREA')
     lt.energy = 450.0

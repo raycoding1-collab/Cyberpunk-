@@ -258,24 +258,34 @@ def carpet_material():
     sep = g.n('ShaderNodeSeparateXYZ')
     g.link(rot.outputs[0], sep.inputs[0])
     x, y = sep.outputs['X'], sep.outputs['Y']
-    fx, fy = g.math('FRACT', g.math('DIVIDE', x, 84.0)), g.math('FRACT', g.math('DIVIDE', y, 58.0))
-    street = g.math('MAXIMUM', g.math('LESS_THAN', fx, 0.12), g.math('LESS_THAN', fy, 0.16))
-    lamps = g.math('MAXIMUM', g.math('LESS_THAN', g.math('ABSOLUTE', g.math('SUBTRACT', fx, 0.06)), 0.008),
-                   g.math('LESS_THAN', g.math('ABSOLUTE', g.math('SUBTRACT', fy, 0.08)), 0.011))
+
+    def fr(v, period):
+        return g.math('FRACT', g.math('DIVIDE', v, period))
+
+    def near(v, c, w):
+        return g.math('LESS_THAN', g.math('ABSOLUTE', g.math('SUBTRACT', v, c)), w)
+
+    # avenues every 240 x 170 m with dotted sodium lamps, dark alleys between blocks
+    ax, ay = fr(x, 240.0), fr(y, 170.0)
+    avenue = g.math('MAXIMUM', g.math('LESS_THAN', ax, 0.05), g.math('LESS_THAN', ay, 0.07))
+    alley = g.math('MAXIMUM', g.math('LESS_THAN', fr(x, 60.0), 0.1), g.math('LESS_THAN', fr(y, 42.0), 0.12))
+    street = g.math('MAXIMUM', avenue, alley)
+    lamps = g.math('MAXIMUM', g.math('MULTIPLY', near(ax, 0.025, 0.004), g.math('LESS_THAN', fr(y, 14.0), 0.22)),
+                   g.math('MULTIPLY', near(ay, 0.035, 0.006), g.math('LESS_THAN', fr(x, 14.0), 0.22)))
     cell = g.n('ShaderNodeCombineXYZ')
-    g.link(g.math('FLOOR', g.math('DIVIDE', x, 4.0)), cell.inputs[0])
-    g.link(g.math('FLOOR', g.math('DIVIDE', y, 4.0)), cell.inputs[1])
+    g.link(g.math('FLOOR', g.math('DIVIDE', x, 2.5)), cell.inputs[0])
+    g.link(g.math('FLOOR', g.math('DIVIDE', y, 2.5)), cell.inputs[1])
     wn = g.n('ShaderNodeTexWhiteNoise')
     wn.noise_dimensions = '3D'
     g.link(cell.outputs[0], wn.inputs['Vector'])
     dens = g.noise(g.mapping(obj, (0.004, 0.004, 0.004)), 1.0, 2, 0.5)
-    lit = g.math('GREATER_THAN', wn.outputs['Value'], g.math('MULTIPLY_ADD', dens, -0.25, 0.97))
+    lit = g.math('GREATER_THAN', wn.outputs['Value'], g.math('MULTIPLY_ADD', dens, -0.05, 0.99))
     lit = g.math('MULTIPLY', lit, g.math('SUBTRACT', 1.0, street))
     hue = g.math('FRACT', g.math('MULTIPLY', wn.outputs['Value'], 37.0))
     lcol = g.ramp(hue, [(0.0, (1.0, 0.62, 0.32)), (0.55, (0.62, 0.8, 1.0)), (0.8, (1.0, 0.25, 0.6)), (0.92, (0.2, 0.9, 1.0))], 'CONSTANT')
     sodium = g.mix(lamps, (0, 0, 0), (1.0, 0.5, 0.18))
     emis = g.mix(lit, sodium, lcol)
-    strength = g.math('MULTIPLY_ADD', lit, 2.5, g.math('MULTIPLY', lamps, 3.0))
+    strength = g.math('MULTIPLY_ADD', lit, 1.1, g.math('MULTIPLY', lamps, 1.6))
     b = g.bsdf(**{'Base Color': (0.018, 0.018, 0.02), 'Roughness': 0.3, 'Emission Color': emis, 'Emission Strength': strength})
     return g.done(b.outputs[0])
 
