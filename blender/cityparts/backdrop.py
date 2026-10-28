@@ -91,7 +91,9 @@ def midfield(col, seed=21, count=46):
         placed.append((x, y, a))
         made += 1
         # nearer towers stay lower so the Spire keeps the skyline
-        h = R.uniform(70.0, 150.0) + (rad - 170.0) * R.uniform(0.15, 0.45)
+        h = R.uniform(55.0, 120.0) + (rad - 170.0) * R.uniform(0.1, 0.35)
+        if rad < 400.0:
+            h = min(h, 165.0)
         kind = R.random()
         a0 = R.uniform(0, TAU)
         lobes = None
@@ -244,8 +246,55 @@ def traffic(col, seed=33):
     return obs
 
 
+def carpet_material():
+    """The low city seen from above: a street grid lined with sodium lamps,
+    blocks speckled with lit windows and signs, wet enough to mirror."""
+    g = M.G('CityCarpet')
+    obj = g.coords('Object')
+    rot = g.n('ShaderNodeVectorRotate', rotation_type='Z_AXIS')
+    rot.inputs['Angle'].default_value = 0.32
+    g.link(obj, rot.inputs['Vector'])
+    sep = g.n('ShaderNodeSeparateXYZ')
+    g.link(rot.outputs[0], sep.inputs[0])
+    x, y = sep.outputs['X'], sep.outputs['Y']
+    fx, fy = g.math('FRACT', g.math('DIVIDE', x, 84.0)), g.math('FRACT', g.math('DIVIDE', y, 58.0))
+    street = g.math('MAXIMUM', g.math('LESS_THAN', fx, 0.12), g.math('LESS_THAN', fy, 0.16))
+    lamps = g.math('MAXIMUM', g.math('LESS_THAN', g.math('ABSOLUTE', g.math('SUBTRACT', fx, 0.06)), 0.008),
+                   g.math('LESS_THAN', g.math('ABSOLUTE', g.math('SUBTRACT', fy, 0.08)), 0.011))
+    cell = g.n('ShaderNodeCombineXYZ')
+    g.link(g.math('FLOOR', g.math('DIVIDE', x, 4.0)), cell.inputs[0])
+    g.link(g.math('FLOOR', g.math('DIVIDE', y, 4.0)), cell.inputs[1])
+    wn = g.n('ShaderNodeTexWhiteNoise')
+    wn.noise_dimensions = '3D'
+    g.link(cell.outputs[0], wn.inputs['Vector'])
+    dens = g.noise(g.mapping(obj, (0.004, 0.004, 0.004)), 1.0, 2, 0.5)
+    lit = g.math('GREATER_THAN', wn.outputs['Value'], g.math('MULTIPLY_ADD', dens, -0.25, 0.97))
+    lit = g.math('MULTIPLY', lit, g.math('SUBTRACT', 1.0, street))
+    hue = g.math('FRACT', g.math('MULTIPLY', wn.outputs['Value'], 37.0))
+    lcol = g.ramp(hue, [(0.0, (1.0, 0.62, 0.32)), (0.55, (0.62, 0.8, 1.0)), (0.8, (1.0, 0.25, 0.6)), (0.92, (0.2, 0.9, 1.0))], 'CONSTANT')
+    sodium = g.mix(lamps, (0, 0, 0), (1.0, 0.5, 0.18))
+    emis = g.mix(lit, sodium, lcol)
+    strength = g.math('MULTIPLY_ADD', lit, 2.5, g.math('MULTIPLY', lamps, 3.0))
+    b = g.bsdf(**{'Base Color': (0.018, 0.018, 0.02), 'Roughness': 0.3, 'Emission Color': emis, 'Emission Strength': strength})
+    return g.done(b.outputs[0])
+
+
+def ground_lights(col):
+    mat = carpet_material()
+    mb = MeshBuilder()
+    n = 96
+    for r0, r1 in ((95.0, 400.0), (400.0, 3000.0)):
+        inner = [(r0 * math.cos(TAU * i / n), r0 * math.sin(TAU * i / n), 0.03) for i in range(n)]
+        outer = [(r1 * math.cos(TAU * i / n), r1 * math.sin(TAU * i / n), 0.03) for i in range(n)]
+        mb.add(inner + outer, [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)], 0)
+    ob = mb.to_object('CityCarpet', [mat], col)
+    ob.visible_shadow = False
+    return ob
+
+
 def build():
     col = collection('Backdrop')
+    ground_lights(col)
     midfield(col)
     megastructures(col)
     traffic(col)

@@ -9,7 +9,7 @@ SHOTS = {
     '01_hero_street': dict(loc=(-34.0, -118.0, 1.7), tgt=(3.0, 0.0, 104.0), lens=18, rain=True, rain_count=1600),
     '02_worms_eye': dict(loc=(33.5, -36.0, 1.6), tgt=(0.0, 0.0, 190.0), lens=14),
     '03_capsule_bands': dict(loc=(44.0, -26.0, 96.0), tgt=(0.0, 0.0, 92.0), lens=32),
-    '04_shopfront_rain': dict(loc=(-6.0, -40.5, 1.65), tgt=(6.0, -30.5, 3.2), lens=22, rain=True, rain_count=4500),
+    '04_shopfront_rain': dict(loc=(-6.0, -40.5, 1.65), tgt=(9.0, -33.5, 3.2), lens=22, rain=True, rain_count=4500),
     '05_hover_car': dict(loc=(18.0, -49.0, 0.5), tgt=(-6.0, -8.0, 1.6), lens=22, rain=True, rain_count=2200, shift=(0.0, 0.12)),
     '06_crown_halo': dict(loc=(62.0, -64.0, 214.0), tgt=(0.0, 0.0, 200.0), lens=34),
     '07_crown_above_mist': dict(loc=(-120.0, -165.0, 238.0), tgt=(0.0, 0.0, 168.0), lens=26),
