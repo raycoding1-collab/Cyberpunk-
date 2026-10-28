@@ -251,7 +251,8 @@ def carpet_material():
     blocks speckled with lit windows and signs, wet enough to mirror."""
     g = M.G('CityCarpet')
     obj = g.coords('Object')
-    rot = g.n('ShaderNodeVectorRotate', rotation_type='Z_AXIS')
+    rot = g.n('ShaderNodeVectorRotate')
+    rot.rotation_type = 'Z_AXIS'
     rot.inputs['Angle'].default_value = 0.32
     g.link(obj, rot.inputs['Vector'])
     sep = g.n('ShaderNodeSeparateXYZ')
