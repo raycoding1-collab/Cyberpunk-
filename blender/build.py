@@ -52,7 +52,12 @@ def main():
     scene.setup_render((w, h), a.samples, preview=a.preview or (a.samples < 64 and not a.final), final=a.final, time_limit=a.time_limit)
     scene.setup_compositor()
     if a.save:
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(a.save))
+        # one camera per still (hero active); textures packed so the file is portable
+        for n, s in SH.SHOTS.items():
+            scene.camera(f'Cam_{n}', s['loc'], s['tgt'], lens=s['lens'], dof=s.get('dof'), shift=s.get('shift', (0, 0)))
+        bpy.context.scene.camera = bpy.data.objects['Cam_01_hero_street']
+        bpy.ops.file.pack_all()
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(a.save), compress=True)
     if a.shots:
         out = os.path.join(ROOT, a.out)
         os.makedirs(out, exist_ok=True)
